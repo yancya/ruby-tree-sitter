@@ -204,10 +204,9 @@ void init_query_cursor(void) {
 
   rb_define_alloc_func(cQueryCursor, query_cursor_allocate);
 
-  /* Module methods */
-  rb_define_module_function(cQueryCursor, "exec", query_cursor_exec_static, 2);
-
   /* Class methods */
+  rb_define_singleton_method(cQueryCursor, "exec", query_cursor_exec_static, 2);
+
   // Accessors
   DECLARE_ACCESSOR(cQueryCursor, query_cursor, match_limit)
 
@@ -215,10 +214,6 @@ void init_query_cursor(void) {
   rb_define_method(cQueryCursor, "exec", query_cursor_exec, 2);
   rb_define_method(cQueryCursor, "exceed_match_limit?",
                    query_cursor_did_exceed_match_limit, 0);
-  rb_define_method(cQueryCursor, "match_limit", query_cursor_get_match_limit,
-                   0);
-  rb_define_method(cQueryCursor, "match_limit=", query_cursor_set_match_limit,
-                   1);
   rb_define_method(cQueryCursor,
                    "max_start_depth=", query_cursor_set_max_start_depth, 1);
   rb_define_method(cQueryCursor, "next_capture", query_cursor_next_capture, 0);
