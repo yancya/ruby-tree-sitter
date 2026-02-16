@@ -57,6 +57,15 @@ describe 'logging' do
     refute_equal 0, backend.length
   end
 
+  it 'should not crash when GC runs after logger is set' do
+    backend = StringIO.new
+    parser.logger = TreeSitter::Logger.new(backend)
+    GC.start
+    GC.compact if GC.respond_to?(:compact)
+    parser.parse_string(nil, program)
+    refute_empty backend.string
+  end
+
   it 'should format output when a format string is passed' do
     delim = '~~~~~'
     backend = StringIO.new

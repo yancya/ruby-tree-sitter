@@ -7,6 +7,7 @@ VALUE cParser;
 typedef struct {
   TSParser *data;
   size_t cancellation_flag;
+  VALUE logger;
 } parser_t;
 
 static void parser_free(void *ptr) {
@@ -19,14 +20,24 @@ static size_t parser_memsize(const void *ptr) {
   return sizeof(type);
 }
 
+static void parser_mark(void *ptr) {
+  parser_t *parser = (parser_t *)ptr;
+  rb_gc_mark_movable(parser->logger);
+}
+
+static void parser_compact(void *ptr) {
+  parser_t *parser = (parser_t *)ptr;
+  parser->logger = rb_gc_location(parser->logger);
+}
+
 const rb_data_type_t parser_data_type = {
     .wrap_struct_name = "parser",
     .function =
         {
-            .dmark = NULL,
+            .dmark = parser_mark,
             .dfree = parser_free,
             .dsize = parser_memsize,
-            .dcompact = NULL,
+            .dcompact = parser_compact,
         },
     .flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
@@ -37,6 +48,7 @@ static VALUE parser_allocate(VALUE klass) {
   parser_t *parser;
   VALUE res = TypedData_Make_Struct(klass, parser_t, &parser_data_type, parser);
   parser->data = ts_parser_new();
+  parser->logger = Qnil;
   return res;
 }
 
@@ -178,6 +190,7 @@ static VALUE parser_get_logger(VALUE self) {
  */
 static VALUE parser_set_logger(VALUE self, VALUE logger) {
   ts_parser_set_logger(SELF, value_to_logger(logger));
+  unwrap(self)->logger = logger;
   return Qnil;
 }
 
